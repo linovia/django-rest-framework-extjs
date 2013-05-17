@@ -60,7 +60,11 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             serializer = self.get_serializer(self.object_list, many=True)
 
-        return Response(serializer.data)
+        return Response({
+            'success': True,
+            'data': serializer.data,
+            'message': "",
+        })
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -86,14 +90,17 @@ class UserViewSet(viewsets.ModelViewSet):
             self.pre_save(serializer.object)
             self.object = serializer.save(**save_kwargs)
             self.post_save(self.object, created=created)
-            return Response(serializer.data, status=success_status_code)
+            return Response({
+                    'success': True,
+                    'data': serializer.data,
+                    'message': "",
+                }, status=success_status_code)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, *args, **kwargs):
-        obj = self.get_object()
-        obj.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+                'success': False,
+                'data': {},
+                'message': repr(serializer.errors),
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
